@@ -1,0 +1,1200 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>GitHub Issue &amp; Branch Maker</title>
+  <style>
+    :root {
+      --ink: #18211d;
+      --muted: #64716a;
+      --paper: #fffdf8;
+      --canvas: #f1eee5;
+      --line: #d8d5ca;
+      --green: #27654a;
+      --green-dark: #184633;
+      --green-soft: #e8f2ec;
+      --amber: #9a5a13;
+      --amber-soft: #fff2d6;
+      --red: #a43b36;
+      --red-soft: #fae9e7;
+      --blue-soft: #eaf1fa;
+      --shadow: 0 18px 55px rgba(42, 48, 43, .10);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 8% 8%, rgba(255,255,255,.9), transparent 30rem),
+        linear-gradient(145deg, #f4f1e8 0%, #ece9df 100%);
+    }
+
+    button, input, select { font: inherit; }
+
+    button { cursor: pointer; }
+
+    a { color: var(--green); }
+
+    .shell {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 52px 0 72px;
+    }
+
+    header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 28px;
+    }
+
+    .eyebrow {
+      color: var(--green);
+      font-weight: 800;
+      font-size: .76rem;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      max-width: 720px;
+      margin: 8px 0 9px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(2.35rem, 6vw, 4.6rem);
+      font-weight: 500;
+      letter-spacing: -.055em;
+      line-height: .98;
+    }
+
+    header p {
+      max-width: 650px;
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .privacy-pill {
+      flex: 0 0 auto;
+      margin-bottom: 7px;
+      padding: 9px 13px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255,255,255,.5);
+      color: var(--muted);
+      font-size: .8rem;
+      white-space: nowrap;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 390px minmax(0, 1fr);
+      gap: 20px;
+      align-items: start;
+    }
+
+    .card {
+      border: 1px solid rgba(197, 195, 184, .9);
+      border-radius: 22px;
+      background: rgba(255, 253, 248, .94);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .card-body { padding: 24px; }
+
+    .step {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      margin-bottom: 18px;
+    }
+
+    .step-number {
+      display: grid;
+      width: 29px;
+      height: 29px;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--ink);
+      color: white;
+      font-weight: 800;
+      font-size: .78rem;
+    }
+
+    h2, h3 { margin: 0; }
+    h2 { font-size: 1.02rem; }
+    h3 { font-size: .9rem; }
+
+    .field { margin-bottom: 17px; }
+
+    label {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 7px;
+      font-size: .82rem;
+      font-weight: 750;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: .76rem;
+      font-weight: 500;
+    }
+
+    input[type="password"], input[type="text"], select {
+      width: 100%;
+      min-height: 44px;
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      outline: none;
+      background: #fff;
+      color: var(--ink);
+      padding: 10px 12px;
+      transition: border .15s, box-shadow .15s;
+    }
+
+    input:focus, select:focus {
+      border-color: #729a84;
+      box-shadow: 0 0 0 3px rgba(70, 123, 92, .13);
+    }
+
+    input:disabled, select:disabled { background: #f1f0eb; color: #8b918d; }
+
+    .token-wrap { position: relative; }
+    .token-wrap input { padding-right: 62px; }
+    .show-token {
+      position: absolute;
+      top: 50%;
+      right: 8px;
+      transform: translateY(-50%);
+      border: 0;
+      background: transparent;
+      color: var(--green);
+      font-size: .75rem;
+      font-weight: 800;
+    }
+
+    .check-row {
+      display: flex;
+      justify-content: flex-start;
+      align-items: flex-start;
+      gap: 9px;
+      margin: 11px 0 17px;
+      color: var(--muted);
+      font-size: .78rem;
+      font-weight: 500;
+      line-height: 1.45;
+    }
+    .check-row input { margin-top: 2px; accent-color: var(--green); }
+
+    .button-row { display: flex; gap: 9px; }
+
+    .btn {
+      min-height: 42px;
+      border: 1px solid transparent;
+      border-radius: 11px;
+      padding: 9px 14px;
+      font-weight: 800;
+      font-size: .84rem;
+      transition: transform .12s, opacity .12s, background .12s;
+    }
+
+    .btn:hover:not(:disabled) { transform: translateY(-1px); }
+    .btn:disabled { cursor: not-allowed; opacity: .45; }
+    .btn-primary { background: var(--green); color: white; }
+    .btn-primary:hover:not(:disabled) { background: var(--green-dark); }
+    .btn-secondary { border-color: var(--line); background: white; color: var(--ink); }
+    .btn-danger { border-color: #e4b8b4; background: var(--red-soft); color: var(--red); }
+
+    .status {
+      display: none;
+      margin-top: 14px;
+      padding: 11px 12px;
+      border-radius: 10px;
+      font-size: .79rem;
+      line-height: 1.45;
+    }
+    .status.visible { display: block; }
+    .status.info { background: var(--blue-soft); color: #31516f; }
+    .status.success { background: var(--green-soft); color: var(--green-dark); }
+    .status.error { background: var(--red-soft); color: #7e2b27; }
+
+    hr {
+      height: 1px;
+      margin: 23px -24px;
+      border: 0;
+      background: var(--line);
+    }
+
+    .drop-zone {
+      position: relative;
+      padding: 28px 18px;
+      border: 1.5px dashed #aaa99f;
+      border-radius: 14px;
+      background: #faf8f2;
+      text-align: center;
+      transition: border .15s, background .15s;
+    }
+    .drop-zone.dragover { border-color: var(--green); background: var(--green-soft); }
+    .drop-zone input {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+      opacity: 0;
+    }
+    .upload-icon { display: block; margin-bottom: 8px; font-size: 1.45rem; }
+    .drop-title { font-weight: 800; font-size: .88rem; }
+    .drop-help { margin-top: 5px; color: var(--muted); font-size: .75rem; }
+
+    .sample-link {
+      display: inline-block;
+      margin-top: 10px;
+      border: 0;
+      background: transparent;
+      color: var(--green);
+      font-size: .75rem;
+      font-weight: 800;
+      text-decoration: underline;
+    }
+
+    .workspace { min-width: 0; }
+
+    .empty-state {
+      display: grid;
+      min-height: 540px;
+      place-items: center;
+      padding: 40px;
+      text-align: center;
+    }
+    .empty-mark {
+      display: grid;
+      width: 68px;
+      height: 68px;
+      margin: 0 auto 16px;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 19px;
+      background: #f7f5ee;
+      font-family: Georgia, serif;
+      font-size: 1.5rem;
+      color: var(--green);
+    }
+    .empty-state p { max-width: 420px; margin: 10px auto 0; color: var(--muted); line-height: 1.6; }
+
+    .preview-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 22px 24px 18px;
+      border-bottom: 1px solid var(--line);
+    }
+    .preview-head p { margin: 6px 0 0; color: var(--muted); font-size: .8rem; }
+
+    .count {
+      flex: 0 0 auto;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: var(--green-soft);
+      color: var(--green-dark);
+      font-size: .74rem;
+      font-weight: 800;
+    }
+
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    th {
+      padding: 11px 16px;
+      border-bottom: 1px solid var(--line);
+      background: #f6f4ed;
+      color: var(--muted);
+      text-align: left;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      font-size: .66rem;
+    }
+    td {
+      padding: 14px 16px;
+      border-bottom: 1px solid #ebe8df;
+      vertical-align: top;
+      font-size: .82rem;
+      line-height: 1.45;
+      overflow-wrap: anywhere;
+    }
+    tbody tr:last-child td { border-bottom: 0; }
+    .col-row { width: 50px; }
+    .col-name { width: 29%; }
+    .col-status { width: 22%; }
+    code.branch {
+      display: inline-block;
+      margin-top: 5px;
+      padding: 3px 6px;
+      border-radius: 5px;
+      background: #efeee8;
+      color: #4d5751;
+      font-size: .7rem;
+    }
+    .description-cell { white-space: pre-wrap; color: #4c5851; }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      max-width: 100%;
+      padding: 4px 7px;
+      border-radius: 6px;
+      font-size: .7rem;
+      font-weight: 800;
+    }
+    .badge.pending { background: #efeee9; color: #606861; }
+    .badge.working { background: var(--amber-soft); color: var(--amber); }
+    .badge.done { background: var(--green-soft); color: var(--green-dark); }
+    .badge.failed { background: var(--red-soft); color: var(--red); }
+    .status-detail { margin-top: 6px; color: var(--muted); font-size: .7rem; line-height: 1.35; }
+    .status-detail a { font-weight: 700; }
+
+    .action-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 18px 24px;
+      border-top: 1px solid var(--line);
+      background: #faf8f2;
+    }
+    .action-copy { color: var(--muted); font-size: .76rem; line-height: 1.4; }
+    .action-copy strong { display: block; color: var(--ink); font-size: .82rem; }
+
+    .progress { display: none; height: 4px; background: #dddcd5; }
+    .progress.visible { display: block; }
+    .progress-bar { width: 0; height: 100%; background: var(--green); transition: width .2s; }
+
+    .error-list {
+      margin: 14px 0 0;
+      padding-left: 20px;
+      color: #7e2b27;
+      font-size: .77rem;
+      line-height: 1.55;
+    }
+
+    .hidden { display: none !important; }
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    @media (max-width: 850px) {
+      .shell { padding-top: 30px; }
+      header { align-items: flex-start; flex-direction: column; }
+      .privacy-pill { display: none; }
+      .layout { grid-template-columns: 1fr; }
+      .empty-state { min-height: 320px; }
+    }
+
+    @media (max-width: 560px) {
+      .shell { width: min(100% - 20px, 1180px); }
+      .card { border-radius: 16px; }
+      .card-body { padding: 18px; }
+      hr { margin-left: -18px; margin-right: -18px; }
+      .preview-head, .action-bar { padding-left: 16px; padding-right: 16px; }
+      .action-bar { align-items: stretch; flex-direction: column; }
+      .action-bar .btn { width: 100%; }
+      th, td { padding-left: 11px; padding-right: 11px; }
+      .col-name { width: 150px; }
+      .col-status { width: 135px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div>
+        <div class="eyebrow">Repository utility</div>
+        <h1>Turn a CSV into GitHub work.</h1>
+        <p>Review every simulation first, then create one issue and one branch per row from a repository’s base branch.</p>
+      </div>
+      <div class="privacy-pill">Browser-only · no server</div>
+    </header>
+
+    <div class="layout">
+      <aside class="card">
+        <div class="card-body">
+          <section aria-labelledby="connect-title">
+            <div class="step">
+              <span class="step-number">1</span>
+              <h2 id="connect-title">Connect GitHub</h2>
+            </div>
+
+            <div class="field">
+              <label for="token">Personal access token <span class="hint">kept in this browser</span></label>
+              <div class="token-wrap">
+                <input id="token" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_… or ghp_…">
+                <button id="toggle-token" class="show-token" type="button" aria-label="Show token">Show</button>
+              </div>
+              <label class="check-row" for="remember-token">
+                <input id="remember-token" type="checkbox">
+                <span>Remember this token in local storage on this device. Clear it before using a shared computer.</span>
+              </label>
+              <div class="button-row">
+                <button id="connect" class="btn btn-primary" type="button">Connect &amp; load repos</button>
+                <button id="forget" class="btn btn-danger hidden" type="button">Forget</button>
+              </div>
+              <div id="connection-status" class="status" role="status" aria-live="polite"></div>
+            </div>
+
+            <div class="field">
+              <label for="repo-filter">Find an organization / repository</label>
+              <input id="repo-filter" type="text" placeholder="Filter repositories…" disabled>
+            </div>
+
+            <div class="field">
+              <label for="repo">Repository</label>
+              <select id="repo" disabled>
+                <option value="">Connect to GitHub first</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="base-branch">Base branch <span class="hint">source commit</span></label>
+              <input id="base-branch" type="text" disabled placeholder="Repository default">
+            </div>
+          </section>
+
+          <hr>
+
+          <section aria-labelledby="upload-title">
+            <div class="step">
+              <span class="step-number">2</span>
+              <h2 id="upload-title">Upload &amp; validate</h2>
+            </div>
+            <div id="drop-zone" class="drop-zone">
+              <input id="csv-file" type="file" accept=".csv,text/csv" aria-label="Upload CSV file">
+              <span class="upload-icon" aria-hidden="true">↥</span>
+              <div class="drop-title">Drop a CSV or choose a file</div>
+              <div class="drop-help">Exactly: name of sim, description</div>
+            </div>
+            <button id="sample" class="sample-link" type="button">Download a sample CSV</button>
+            <div id="file-status" class="status" role="status" aria-live="polite"></div>
+            <ul id="validation-errors" class="error-list hidden"></ul>
+          </section>
+        </div>
+      </aside>
+
+      <section class="card workspace" aria-labelledby="preview-title">
+        <div id="empty-state" class="empty-state">
+          <div>
+            <div class="empty-mark" aria-hidden="true">CSV</div>
+            <h2>No preview yet</h2>
+            <p>Upload a valid two-column CSV to inspect the issue titles, branch names, and descriptions before anything is sent to GitHub.</p>
+          </div>
+        </div>
+
+        <div id="preview" class="hidden">
+          <div class="preview-head">
+            <div>
+              <h2 id="preview-title">Creation preview</h2>
+              <p id="preview-subtitle">Nothing has been sent to GitHub.</p>
+            </div>
+            <span id="row-count" class="count">0 rows</span>
+          </div>
+          <div id="progress" class="progress" aria-hidden="true"><div id="progress-bar" class="progress-bar"></div></div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th class="col-row">#</th>
+                  <th class="col-name">Issue / branch</th>
+                  <th>Description</th>
+                  <th class="col-status">Status</th>
+                </tr>
+              </thead>
+              <tbody id="preview-rows"></tbody>
+            </table>
+          </div>
+          <div class="action-bar">
+            <div class="action-copy">
+              <strong id="action-title">Ready for review</strong>
+              <span id="action-detail">Connect GitHub and select a repository to continue.</span>
+            </div>
+            <button id="create-all" class="btn btn-primary" type="button" disabled>Create all</button>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    'use strict';
+
+    const API_ROOT = 'https://api.github.com';
+    const API_VERSION = '2026-03-10';
+    const TOKEN_KEY = 'github-issue-branch-maker.token';
+
+    const elements = {
+      token: document.querySelector('#token'),
+      toggleToken: document.querySelector('#toggle-token'),
+      rememberToken: document.querySelector('#remember-token'),
+      connect: document.querySelector('#connect'),
+      forget: document.querySelector('#forget'),
+      connectionStatus: document.querySelector('#connection-status'),
+      repoFilter: document.querySelector('#repo-filter'),
+      repo: document.querySelector('#repo'),
+      baseBranch: document.querySelector('#base-branch'),
+      dropZone: document.querySelector('#drop-zone'),
+      csvFile: document.querySelector('#csv-file'),
+      sample: document.querySelector('#sample'),
+      fileStatus: document.querySelector('#file-status'),
+      validationErrors: document.querySelector('#validation-errors'),
+      emptyState: document.querySelector('#empty-state'),
+      preview: document.querySelector('#preview'),
+      previewSubtitle: document.querySelector('#preview-subtitle'),
+      rowCount: document.querySelector('#row-count'),
+      previewRows: document.querySelector('#preview-rows'),
+      createAll: document.querySelector('#create-all'),
+      actionTitle: document.querySelector('#action-title'),
+      actionDetail: document.querySelector('#action-detail'),
+      progress: document.querySelector('#progress'),
+      progressBar: document.querySelector('#progress-bar')
+    };
+
+    const state = {
+      user: null,
+      repositories: [],
+      visibleRepositories: [],
+      rows: [],
+      running: false
+    };
+
+    function setStatus(element, message, type = 'info') {
+      element.textContent = message;
+      element.className = `status visible ${type}`;
+    }
+
+    function clearStatus(element) {
+      element.textContent = '';
+      element.className = 'status';
+    }
+
+    function getToken() {
+      return elements.token.value.trim();
+    }
+
+    async function github(path, options = {}) {
+      const token = getToken();
+      if (!token) throw new Error('Enter a GitHub personal access token first.');
+
+      const response = await fetch(path.startsWith('http') ? path : `${API_ROOT}${path}`, {
+        ...options,
+        headers: {
+          'Accept': 'application/vnd.github+json',
+          'Authorization': `Bearer ${token}`,
+          'X-GitHub-Api-Version': API_VERSION,
+          ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+          ...(options.headers || {})
+        }
+      });
+
+      const body = response.status === 204 ? null : await response.json().catch(() => null);
+      if (!response.ok) {
+        const apiMessage = body && body.message ? body.message : `${response.status} ${response.statusText}`;
+        const error = new Error(apiMessage);
+        error.status = response.status;
+        error.details = body;
+        throw error;
+      }
+      return { body, response };
+    }
+
+    async function getAllPages(path) {
+      const items = [];
+      let page = 1;
+      while (true) {
+        const separator = path.includes('?') ? '&' : '?';
+        const result = await github(`${path}${separator}per_page=100&page=${page}`);
+        if (!Array.isArray(result.body)) throw new Error('GitHub returned an unexpected repository response.');
+        items.push(...result.body);
+        if (result.body.length < 100) return items;
+        page += 1;
+      }
+    }
+
+    async function connect() {
+      if (!getToken()) {
+        setStatus(elements.connectionStatus, 'Enter a personal access token to connect.', 'error');
+        return;
+      }
+
+      elements.connect.disabled = true;
+      elements.connect.textContent = 'Connecting…';
+      setStatus(elements.connectionStatus, 'Checking the token and loading repositories…', 'info');
+
+      try {
+        const [userResult, repositories] = await Promise.all([
+          github('/user'),
+          getAllPages('/user/repos?affiliation=owner,collaborator,organization_member&sort=full_name&direction=asc')
+        ]);
+
+        state.user = userResult.body;
+        state.repositories = repositories.filter(repo => !repo.archived && !repo.disabled);
+        state.visibleRepositories = state.repositories.slice();
+
+        if (elements.rememberToken.checked) {
+          localStorage.setItem(TOKEN_KEY, getToken());
+        } else {
+          localStorage.removeItem(TOKEN_KEY);
+        }
+
+        elements.forget.classList.toggle('hidden', !localStorage.getItem(TOKEN_KEY));
+        elements.repoFilter.disabled = false;
+        elements.repo.disabled = false;
+        elements.baseBranch.disabled = false;
+        renderRepositories();
+        setStatus(
+          elements.connectionStatus,
+          `Connected as ${state.user.login}. Loaded ${state.repositories.length} active repositor${state.repositories.length === 1 ? 'y' : 'ies'}.`,
+          'success'
+        );
+      } catch (error) {
+        disconnectSelection();
+        setStatus(elements.connectionStatus, explainApiError(error, 'Could not connect to GitHub'), 'error');
+      } finally {
+        elements.connect.disabled = false;
+        elements.connect.textContent = 'Connect & load repos';
+        updateCreateButton();
+      }
+    }
+
+    function disconnectSelection() {
+      state.user = null;
+      state.repositories = [];
+      state.visibleRepositories = [];
+      elements.repoFilter.disabled = true;
+      elements.repo.disabled = true;
+      elements.baseBranch.disabled = true;
+      elements.repo.innerHTML = '<option value="">Connect to GitHub first</option>';
+      elements.baseBranch.value = '';
+    }
+
+    function renderRepositories() {
+      const current = elements.repo.value;
+      elements.repo.replaceChildren();
+      const prompt = document.createElement('option');
+      prompt.value = '';
+      prompt.textContent = state.visibleRepositories.length ? 'Select a repository' : 'No matching repositories';
+      elements.repo.append(prompt);
+
+      for (const repo of state.visibleRepositories) {
+        const option = document.createElement('option');
+        option.value = repo.full_name;
+        option.textContent = `${repo.full_name}${repo.private ? ' · private' : ''}`;
+        elements.repo.append(option);
+      }
+
+      if (state.visibleRepositories.some(repo => repo.full_name === current)) {
+        elements.repo.value = current;
+      } else {
+        elements.baseBranch.value = '';
+      }
+      updateCreateButton();
+    }
+
+    function selectedRepository() {
+      return state.repositories.find(repo => repo.full_name === elements.repo.value) || null;
+    }
+
+    function parseCsv(text) {
+      const input = text.replace(/^\uFEFF/, '');
+      const records = [];
+      let record = [];
+      let field = '';
+      let quoted = false;
+      let afterQuote = false;
+
+      for (let index = 0; index < input.length; index += 1) {
+        const char = input[index];
+        const next = input[index + 1];
+
+        if (quoted) {
+          if (char === '"' && next === '"') {
+            field += '"';
+            index += 1;
+          } else if (char === '"') {
+            quoted = false;
+            afterQuote = true;
+          } else {
+            field += char;
+          }
+          continue;
+        }
+
+        if (afterQuote) {
+          if (char === ',') {
+            record.push(field);
+            field = '';
+            afterQuote = false;
+          } else if (char === '\n' || char === '\r') {
+            record.push(field);
+            records.push(record);
+            record = [];
+            field = '';
+            afterQuote = false;
+            if (char === '\r' && next === '\n') index += 1;
+          } else if (char !== ' ' && char !== '\t') {
+            throw new Error(`Unexpected character after a closing quote near row ${records.length + 1}.`);
+          }
+          continue;
+        }
+
+        if (char === '"') {
+          if (field.length > 0) throw new Error(`Unexpected quote near row ${records.length + 1}.`);
+          quoted = true;
+        } else if (char === ',') {
+          record.push(field);
+          field = '';
+        } else if (char === '\n' || char === '\r') {
+          record.push(field);
+          records.push(record);
+          record = [];
+          field = '';
+          if (char === '\r' && next === '\n') index += 1;
+        } else {
+          field += char;
+        }
+      }
+
+      if (quoted) throw new Error('The CSV ends inside a quoted field.');
+      if (afterQuote || field.length > 0 || record.length > 0) {
+        record.push(field);
+        records.push(record);
+      }
+
+      while (records.length && records[records.length - 1].every(value => value.trim() === '')) records.pop();
+      return records;
+    }
+
+    function branchNameError(name) {
+      if (!name) return 'name of sim cannot be empty';
+      if (name === '@') return 'a branch cannot be named @';
+      if (name.startsWith('-')) return 'a branch cannot start with a hyphen';
+      if (name.startsWith('/') || name.endsWith('/')) return 'a branch cannot start or end with /';
+      if (name.startsWith('.') || name.endsWith('.')) return 'a branch cannot start or end with a period';
+      if (name.includes('..')) return 'a branch cannot contain ..';
+      if (name.includes('@{')) return 'a branch cannot contain @{';
+      if (name.includes('//')) return 'a branch cannot contain consecutive slashes';
+      if (/[\x00-\x20\x7f~^:?*\[\\]/.test(name)) return 'a branch cannot contain spaces or Git-reserved characters';
+      if (name.split('/').some(part => part.startsWith('.') || part.toLowerCase().endsWith('.lock'))) {
+        return 'branch path parts cannot start with . or end with .lock';
+      }
+      if (new TextEncoder().encode(`refs/heads/${name}`).length > 1024) return 'the branch name is too long';
+      return '';
+    }
+
+    function validateRecords(records) {
+      const errors = [];
+      if (!records.length) return { errors: ['The file is empty.'], rows: [] };
+
+      const headers = records[0].map(header => header.trim().toLowerCase());
+      if (headers.length !== 2 || headers[0] !== 'name of sim' || headers[1] !== 'description') {
+        errors.push('The header must be exactly: name of sim,description (in that order, with no extra columns).');
+      }
+
+      const rows = [];
+      const seen = new Map();
+      for (let index = 1; index < records.length; index += 1) {
+        const record = records[index];
+        const csvRow = index + 1;
+        if (record.every(value => value.trim() === '')) continue;
+        if (record.length !== 2) {
+          errors.push(`Row ${csvRow} has ${record.length} columns; expected 2.`);
+          continue;
+        }
+
+        const name = record[0].trim();
+        const description = record[1].trim();
+        const invalidBranch = branchNameError(name);
+        if (invalidBranch) errors.push(`Row ${csvRow}: ${invalidBranch}.`);
+        if (!description) errors.push(`Row ${csvRow}: description cannot be empty.`);
+        if (name && seen.has(name)) errors.push(`Row ${csvRow}: duplicate name of sim (first used on row ${seen.get(name)}).`);
+        if (name && !seen.has(name)) seen.set(name, csvRow);
+
+        rows.push({
+          csvRow,
+          name,
+          description,
+          status: 'pending',
+          detail: 'Not created',
+          branchCreated: false,
+          issueCreated: false,
+          issueUrl: null,
+          branchUrl: null
+        });
+      }
+
+      if (!rows.length) errors.push('The CSV has a header but no data rows.');
+      return { errors, rows };
+    }
+
+    async function handleFile(file) {
+      clearStatus(elements.fileStatus);
+      elements.validationErrors.classList.add('hidden');
+      elements.validationErrors.replaceChildren();
+
+      if (!file) return;
+      if (!file.name.toLowerCase().endsWith('.csv')) {
+        showFileErrors(['Choose a file with a .csv extension.']);
+        clearPreview();
+        return;
+      }
+      if (file.size > 2 * 1024 * 1024) {
+        showFileErrors(['The CSV is larger than 2 MB. Split it into a smaller batch.']);
+        clearPreview();
+        return;
+      }
+
+      try {
+        const records = parseCsv(await file.text());
+        const validation = validateRecords(records);
+        if (validation.errors.length) {
+          showFileErrors(validation.errors);
+          clearPreview();
+          return;
+        }
+        state.rows = validation.rows;
+        setStatus(elements.fileStatus, `${file.name} is valid: ${state.rows.length} row${state.rows.length === 1 ? '' : 's'} ready to preview.`, 'success');
+        renderPreview();
+      } catch (error) {
+        showFileErrors([error.message || 'The CSV could not be parsed.']);
+        clearPreview();
+      }
+    }
+
+    function showFileErrors(errors) {
+      setStatus(elements.fileStatus, `CSV validation failed with ${errors.length} problem${errors.length === 1 ? '' : 's'}.`, 'error');
+      elements.validationErrors.replaceChildren(...errors.slice(0, 25).map(message => {
+        const item = document.createElement('li');
+        item.textContent = message;
+        return item;
+      }));
+      if (errors.length > 25) {
+        const item = document.createElement('li');
+        item.textContent = `And ${errors.length - 25} more problems.`;
+        elements.validationErrors.append(item);
+      }
+      elements.validationErrors.classList.remove('hidden');
+    }
+
+    function clearPreview() {
+      state.rows = [];
+      elements.emptyState.classList.remove('hidden');
+      elements.preview.classList.add('hidden');
+      elements.previewRows.replaceChildren();
+      updateCreateButton();
+    }
+
+    function renderPreview() {
+      elements.emptyState.classList.add('hidden');
+      elements.preview.classList.remove('hidden');
+      elements.rowCount.textContent = `${state.rows.length} row${state.rows.length === 1 ? '' : 's'}`;
+      elements.previewRows.replaceChildren(...state.rows.map((row, index) => buildRow(row, index)));
+      updateCreateButton();
+    }
+
+    function buildRow(row, index) {
+      const tr = document.createElement('tr');
+      tr.dataset.index = String(index);
+
+      const number = document.createElement('td');
+      number.textContent = String(index + 1);
+
+      const name = document.createElement('td');
+      const title = document.createElement('strong');
+      title.textContent = row.name;
+      const branch = document.createElement('code');
+      branch.className = 'branch';
+      branch.textContent = row.name;
+      name.append(title, document.createElement('br'), branch);
+
+      const description = document.createElement('td');
+      description.className = 'description-cell';
+      description.textContent = row.description;
+
+      const status = document.createElement('td');
+      status.className = 'row-status';
+      updateStatusCell(status, row);
+
+      tr.append(number, name, description, status);
+      return tr;
+    }
+
+    function updateStatusCell(cell, row) {
+      cell.replaceChildren();
+      const labels = {
+        pending: 'Pending',
+        working: 'Creating…',
+        done: 'Created',
+        failed: 'Needs attention'
+      };
+      const badge = document.createElement('span');
+      badge.className = `badge ${row.status}`;
+      badge.textContent = labels[row.status];
+      const detail = document.createElement('div');
+      detail.className = 'status-detail';
+
+      if (row.status === 'done' && row.issueUrl && row.branchUrl) {
+        const issue = document.createElement('a');
+        issue.href = row.issueUrl;
+        issue.target = '_blank';
+        issue.rel = 'noopener noreferrer';
+        issue.textContent = 'Issue';
+        const separator = document.createTextNode(' · ');
+        const branch = document.createElement('a');
+        branch.href = row.branchUrl;
+        branch.target = '_blank';
+        branch.rel = 'noopener noreferrer';
+        branch.textContent = 'Branch';
+        detail.append(issue, separator, branch);
+      } else {
+        detail.textContent = row.detail;
+      }
+      cell.append(badge, detail);
+    }
+
+    function updateRow(index) {
+      const rowElement = elements.previewRows.querySelector(`tr[data-index="${index}"]`);
+      if (rowElement) updateStatusCell(rowElement.querySelector('.row-status'), state.rows[index]);
+    }
+
+    function updateCreateButton() {
+      const repo = selectedRepository();
+      const hasBase = Boolean(elements.baseBranch.value.trim());
+      const pendingRows = state.rows.filter(row => row.status !== 'done');
+      const canCreate = !state.running && Boolean(repo) && hasBase && pendingRows.length > 0;
+      elements.createAll.disabled = !canCreate;
+
+      if (!state.rows.length) return;
+      if (state.running) {
+        elements.actionTitle.textContent = 'Creation in progress';
+        elements.actionDetail.textContent = 'Keep this tab open while GitHub processes each row.';
+      } else if (!state.user) {
+        elements.actionTitle.textContent = 'GitHub connection required';
+        elements.actionDetail.textContent = 'Connect with a token before creating anything.';
+      } else if (!repo) {
+        elements.actionTitle.textContent = 'Choose a repository';
+        elements.actionDetail.textContent = 'Select the organization / repository that should receive these items.';
+      } else if (!hasBase) {
+        elements.actionTitle.textContent = 'Enter a base branch';
+        elements.actionDetail.textContent = 'New branches need a source commit.';
+      } else if (!pendingRows.length) {
+        elements.actionTitle.textContent = 'Batch complete';
+        elements.actionDetail.textContent = 'Every issue and branch in this preview was created.';
+      } else {
+        elements.actionTitle.textContent = `${pendingRows.length} item${pendingRows.length === 1 ? '' : 's'} ready`;
+        elements.actionDetail.textContent = `Branches will start from ${elements.baseBranch.value.trim()}. This action cannot be undone here.`;
+      }
+      elements.createAll.textContent = state.rows.some(row => row.status === 'failed') ? 'Retry incomplete' : 'Create all';
+    }
+
+    async function resolveBaseSha(repository, branch) {
+      const path = `/repos/${encodeURIComponent(repository.owner.login)}/${encodeURIComponent(repository.name)}/branches/${encodeURIComponent(branch)}`;
+      const result = await github(path);
+      if (!result.body || !result.body.commit || !result.body.commit.sha) throw new Error('GitHub did not return a commit for the base branch.');
+      return result.body.commit.sha;
+    }
+
+    async function createOne(row, repository, baseSha) {
+      const owner = repository.owner.login;
+      const repo = repository.name;
+      const root = `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}`;
+
+      if (!row.branchCreated) {
+        await github(`${root}/git/refs`, {
+          method: 'POST',
+          body: JSON.stringify({ ref: `refs/heads/${row.name}`, sha: baseSha })
+        });
+        row.branchCreated = true;
+        row.branchUrl = `${repository.html_url}/tree/${row.name.split('/').map(encodeURIComponent).join('/')}`;
+      }
+
+      try {
+        if (!row.issueCreated) {
+          const issueResult = await github(`${root}/issues`, {
+            method: 'POST',
+            body: JSON.stringify({ title: row.name, body: row.description })
+          });
+          row.issueCreated = true;
+          row.issueUrl = issueResult.body.html_url;
+        }
+      } catch (error) {
+        error.message = `Branch was created, but the issue failed: ${error.message}`;
+        throw error;
+      }
+    }
+
+    async function createAll() {
+      const repository = selectedRepository();
+      const baseBranch = elements.baseBranch.value.trim();
+      if (!repository || !baseBranch || state.running) return;
+
+      const pendingIndexes = state.rows
+        .map((row, index) => ({ row, index }))
+        .filter(item => item.row.status !== 'done');
+      if (!pendingIndexes.length) return;
+
+      const confirmed = window.confirm(
+        `Create ${pendingIndexes.length} branch${pendingIndexes.length === 1 ? '' : 'es'} and issue${pendingIndexes.length === 1 ? '' : 's'} in ${repository.full_name} from ${baseBranch}?`
+      );
+      if (!confirmed) return;
+
+      state.running = true;
+      elements.repo.disabled = true;
+      elements.repoFilter.disabled = true;
+      elements.baseBranch.disabled = true;
+      elements.csvFile.disabled = true;
+      elements.connect.disabled = true;
+      elements.createAll.disabled = true;
+      elements.progress.classList.add('visible');
+      elements.progressBar.style.width = '0%';
+      elements.previewSubtitle.textContent = `Creating in ${repository.full_name}…`;
+      updateCreateButton();
+
+      let completed = 0;
+      let succeeded = 0;
+      try {
+        const baseSha = await resolveBaseSha(repository, baseBranch);
+        for (const { row, index } of pendingIndexes) {
+          row.status = 'working';
+          row.detail = row.branchCreated ? 'Retrying issue creation' : 'Creating branch, then issue';
+          updateRow(index);
+          try {
+            await createOne(row, repository, baseSha);
+            row.status = 'done';
+            row.detail = 'Issue and branch created';
+            succeeded += 1;
+          } catch (error) {
+            row.status = 'failed';
+            row.detail = explainApiError(error, 'Creation failed');
+          }
+          completed += 1;
+          updateRow(index);
+          elements.progressBar.style.width = `${Math.round(completed / pendingIndexes.length * 100)}%`;
+        }
+        elements.previewSubtitle.textContent = `${succeeded} of ${pendingIndexes.length} item${pendingIndexes.length === 1 ? '' : 's'} created in this run.`;
+      } catch (error) {
+        for (const { row, index } of pendingIndexes) {
+          row.status = 'failed';
+          row.detail = explainApiError(error, `Could not read base branch “${baseBranch}”`);
+          updateRow(index);
+        }
+        elements.previewSubtitle.textContent = 'Nothing was created because the base branch could not be read.';
+      } finally {
+        state.running = false;
+        elements.repo.disabled = false;
+        elements.repoFilter.disabled = false;
+        elements.baseBranch.disabled = false;
+        elements.csvFile.disabled = false;
+        elements.connect.disabled = false;
+        updateCreateButton();
+      }
+    }
+
+    function explainApiError(error, prefix) {
+      if (error.status === 401) return `${prefix}: the token is invalid or expired.`;
+      if (error.status === 403) return `${prefix}: the token lacks permission, or GitHub rate-limited the request.`;
+      if (error.status === 404) return `${prefix}: resource not found or the token cannot access it.`;
+      if (error.status === 409) return `${prefix}: GitHub reported a conflict (the repository may be empty).`;
+      if (error.status === 410) return `${prefix}: issues are disabled for this repository.`;
+      if (error.status === 422) return `${prefix}: the branch may already exist, the name may be rejected, or validation failed.`;
+      return `${prefix}: ${error.message || 'unexpected GitHub API error'}.`;
+    }
+
+    function downloadSample() {
+      const csv = 'name of sim,description\ncoastal-flooding,"Model coastal flooding under a high-tide scenario."\nforest-recovery,"Estimate recovery over a ten-year window."\n';
+      const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'simulations.csv';
+      document.body.append(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    elements.toggleToken.addEventListener('click', () => {
+      const show = elements.token.type === 'password';
+      elements.token.type = show ? 'text' : 'password';
+      elements.toggleToken.textContent = show ? 'Hide' : 'Show';
+      elements.toggleToken.setAttribute('aria-label', `${show ? 'Hide' : 'Show'} token`);
+    });
+
+    elements.connect.addEventListener('click', connect);
+    elements.token.addEventListener('keydown', event => {
+      if (event.key === 'Enter') connect();
+    });
+    elements.rememberToken.addEventListener('change', () => {
+      if (!elements.rememberToken.checked) {
+        localStorage.removeItem(TOKEN_KEY);
+        elements.forget.classList.add('hidden');
+      }
+    });
+    elements.forget.addEventListener('click', () => {
+      localStorage.removeItem(TOKEN_KEY);
+      elements.token.value = '';
+      elements.rememberToken.checked = false;
+      elements.forget.classList.add('hidden');
+      disconnectSelection();
+      setStatus(elements.connectionStatus, 'Saved token removed from this browser.', 'success');
+      updateCreateButton();
+    });
+    elements.repoFilter.addEventListener('input', () => {
+      const query = elements.repoFilter.value.trim().toLowerCase();
+      state.visibleRepositories = state.repositories.filter(repo => repo.full_name.toLowerCase().includes(query));
+      renderRepositories();
+    });
+    elements.repo.addEventListener('change', () => {
+      const repository = selectedRepository();
+      elements.baseBranch.value = repository ? repository.default_branch || '' : '';
+      updateCreateButton();
+    });
+    elements.baseBranch.addEventListener('input', updateCreateButton);
+    elements.csvFile.addEventListener('change', event => handleFile(event.target.files[0]));
+    elements.dropZone.addEventListener('dragover', event => {
+      event.preventDefault();
+      elements.dropZone.classList.add('dragover');
+    });
+    elements.dropZone.addEventListener('dragleave', () => elements.dropZone.classList.remove('dragover'));
+    elements.dropZone.addEventListener('drop', event => {
+      event.preventDefault();
+      elements.dropZone.classList.remove('dragover');
+      if (event.dataTransfer.files[0]) handleFile(event.dataTransfer.files[0]);
+    });
+    elements.sample.addEventListener('click', downloadSample);
+    elements.createAll.addEventListener('click', createAll);
+
+    const savedToken = localStorage.getItem(TOKEN_KEY);
+    if (savedToken) {
+      elements.token.value = savedToken;
+      elements.rememberToken.checked = true;
+      elements.forget.classList.remove('hidden');
+      setStatus(elements.connectionStatus, 'A saved token is ready. Connect to refresh your repositories.', 'info');
+    }
+    document.documentElement.dataset.appReady = 'true';
+  </script>
+</body>
+</html>
